@@ -72,8 +72,22 @@ class SettingsDialog(QDialog):
         self.form_layouts.append(core_layout)
 
         self.hotkey_combo = QComboBox()
-        self.hotkey_combo.addItems(['ctrl', 'shift', 'alt', 'ctrl+shift', 'ctrl+alt', 'shift+alt', 'ctrl+shift+alt'])
-        self.hotkey_combo.setCurrentText(config.hotkey)
+        for key in ['ctrl', 'shift', 'alt', 'ctrl+shift', 'ctrl+alt', 'shift+alt', 'ctrl+shift+alt']:
+            self.hotkey_combo.addItem(key, key)
+        for label, value in [("Mouse: Middle Button (Wheel Click)", 'mouse_middle'),
+                             ("Mouse: Right Button", 'mouse_right'),
+                             ("Mouse: Back Button (Side)", 'mouse_back'),
+                             ("Mouse: Forward Button (Side)", 'mouse_forward')]:
+            self.hotkey_combo.addItem(label, value)
+        hotkey_index = self.hotkey_combo.findData(config.hotkey.lower())
+        if hotkey_index == -1:  # e.g. a custom hotkey set in the config file
+            self.hotkey_combo.addItem(config.hotkey, config.hotkey)
+            hotkey_index = self.hotkey_combo.count() - 1
+        self.hotkey_combo.setCurrentIndex(hotkey_index)
+        self.hotkey_combo.setToolTip(
+            "Key or mouse button to hold for the popup.\n"
+            "Mouse clicks are still passed on to the window underneath (e.g. right click may open a context menu),\n"
+            "so the side buttons or wheel click usually work best.")
         self._set_expanding(self.hotkey_combo)
         core_layout.addRow("Hotkey:", self.hotkey_combo)
 
@@ -449,7 +463,7 @@ class SettingsDialog(QDialog):
             self.ocr_processor.switch_provider(selected_provider)
 
         # Update all other config values
-        config.hotkey = self.hotkey_combo.currentText()
+        config.hotkey = self.hotkey_combo.currentData()
         config.glens_low_bandwidth = self.glens_compression_check.isChecked()
         config.max_lookup_length = self.max_lookup_spin.value()
         config.auto_scan_mode = self.auto_scan_check.isChecked()

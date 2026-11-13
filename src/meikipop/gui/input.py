@@ -134,6 +134,71 @@ class MacOSKeyboardController:
             logger.warning(f"Error checking hotkey state: {e}")
             return False
 
+# Mouse buttons that can be used as hotkey. Each maps to the pynput button names used by the different backends
+# (windows: x1/x2, linux/x11: button8/button9). On macOS all extra buttons are reported as 'middle'.
+MOUSE_HOTKEYS = {
+    'mouse_middle': ['middle'],
+    'mouse_right': ['right'],
+    'mouse_back': ['x1', 'button8'],
+    'mouse_forward': ['x2', 'button9'],
+}
+
+
+def is_mouse_hotkey(hotkey_str: str) -> bool:
+    return hotkey_str.lower() in MOUSE_HOTKEYS
+
+
+class MouseButtonController:
+    """Tracks whether a mouse button used as hotkey is currently held down, using a global mouse listener."""
+
+    def __init__(self, hotkey_str):
+        self.hotkey_str = hotkey_str.lower()
+        self.target_buttons = set()
+        for name in MOUSE_HOTKEYS.get(self.hotkey_str, []):
+            button = getattr(mouse.Button, name, None)
+            if button is not None:
+                self.target_buttons.add(button)
+        if not self.target_buttons:
+            logger.error(f"Mouse button hotkey '{self.hotkey_str}' is not supported on this platform.")
+
+        self._pressed = set()
+        self._lock = threading.Lock()
+        self.listener = mouse.Listener(on_click=self._on_click)
+        self.listener.daemon = True
+        self.listener.start()
+
+    def _on_click(self, x, y, button, pressed):
+        if button not in self.target_buttons:
+            return
+        with self._lock:
+            if pressed:
+                self._pressed.add(button)
+            else:
+                self._pressed.discard(button)
+
+    def is_hotkey_pressed(self) -> bool:
+        with self._lock:
+            return bool(self._pressed)
+
+    def stop(self):
+        try:
+            self.listener.stop()
+        except Exception:
+            pass
+
+
+def create_hotkey_controller(hotkey_str):
+    hotkey_str = hotkey_str.lower()
+    if is_mouse_hotkey(hotkey_str):
+        return MouseButtonController(hotkey_str)
+    if IS_LINUX:
+        return LinuxX11KeyboardController(hotkey_str)
+    elif IS_MACOS:
+        return MacOSKeyboardController(hotkey_str)
+    else:  # IS_WINDOWS
+        return WindowsKeyboardController(hotkey_str)
+
+
 class InputLoop(threading.Thread):
     _mouse_controller = None
 
@@ -142,12 +207,7 @@ class InputLoop(threading.Thread):
         self.shared_state = shared_state
 
         self.hotkey_str = config.hotkey.lower()
-        if IS_LINUX:
-            self.keyboard_controller = LinuxX11KeyboardController(self.hotkey_str)
-        elif IS_MACOS:
-            self.keyboard_controller = MacOSKeyboardController(self.hotkey_str)
-        else: # IS_WINDOWS
-            self.keyboard_controller = WindowsKeyboardController(self.hotkey_str)
+        self.keyboard_controller = create_hotkey_controller(self.hotkey_str)
 
         self.started_auto_mode = False
         self.hotkey_is_pressed = False
@@ -208,12 +268,10 @@ class InputLoop(threading.Thread):
     def reapply_settings(self):
         logger.debug(f"InputLoop: Re-applying settings. New hotkey: '{config.hotkey}'.")
         self.hotkey_str = config.hotkey.lower()
-        if IS_LINUX:
-            self.keyboard_controller = LinuxX11KeyboardController(self.hotkey_str)
-        elif IS_MACOS:
-            self.keyboard_controller = MacOSKeyboardController(self.hotkey_str)
-        else: # IS_WINDOWS
-            self.keyboard_controller = WindowsKeyboardController(self.hotkey_str)
+        old_controller = self.keyboard_controller
+        self.keyboard_controller = create_hotkey_controller(self.hotkey_str)
+        if hasattr(old_controller, 'stop'):
+            old_controller.stop()
 
     @staticmethod
     def get_mouse_pos():
