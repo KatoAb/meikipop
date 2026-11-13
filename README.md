@@ -1,10 +1,42 @@
 # meikipop - universal japanese ocr popup dictionary
 
+> **this is a fork of [rtr46/meikipop](https://github.com/rtr46/meikipop)** with a few extra features, listed below. everything else works like the original. download the latest build from [releases](https://github.com/KatoAb/meikipop/releases/latest).
+
 instantly look up japanese words anywhere on your screen. meikipop uses optical character recognition (ocr) to read text from websites, games, scanned manga, or even hard-coded video subtitles, giving you effortless dictionary lookups with the press of a key (or even without)!
 
 https://github.com/user-attachments/assets/a1834197-3059-438c-a2dc-716e8ec9078f
 
 
+
+## what's new in this fork
+
+### furigana mode
+hover a word and its reading shows in a small box centered over the cursor. hold the hotkey to get the full dictionary popup instead. turn it on in the tray menu or in settings → general → furigana mode.
+
+![furigana over a word](docs/images/furigana.png)
+
+### max words in popup
+choose how many dictionary results the popup shows (1–50, you can type the number). set it to 1 to see only the closest word. the kanji info box counts as one of them. settings → popup content.
+
+![popup with 1 word](docs/images/dictionary-one-word.png)
+
+![max words setting](docs/images/settings-popup-content.png)
+
+### ocr quick switch (windows)
+press a hotkey (default `ctrl+alt+o`) to switch between two ocr providers, e.g. local meikiocr for normal reading and google lens for hard text. a small notice shows which one is now active. settings → general → ocr quick switch.
+
+![ocr switch notice](docs/images/ocr-switch.png)
+
+![general settings with ocr quick switch and furigana mode](docs/images/settings-general.png)
+
+### scan area: screen under mouse
+only scans the screen your mouse is on, so multi-monitor setups send much smaller images (faster with google lens). each screen keeps its last result, so moving back to a screen works instantly. tray menu → scan area → screen under mouse.
+
+![scan area menu](docs/images/scan-area.png)
+
+### smaller things
+* the popup always stays on top of other windows, such as browser link previews.
+* on windows the console window is hidden; show it from the tray menu if you need logs.
 
 ## features
 
@@ -15,22 +47,6 @@ https://github.com/user-attachments/assets/a1834197-3059-438c-a2dc-716e8ec9078f
 *   **highly customizable:** change the hotkey, theme, colors, and layout to create your perfect reading experience.
 *   **region or fullscreen:** scan your entire screen or select a specific region (like a game window or manga page) to improve performance.
 *   **pluggable ocr backend:** lets you choose whatever ocr suits you best. whether you want the highest accuracy remote ocr, that runs great even on low-end hardware or you want blazingly fast and private local ocr.
-
-## new in this version
-
-*   **furigana mode:** just hover a word to see its reading in a small box centered over the cursor. hold the hotkey for the full dictionary popup. toggle it in the tray menu or settings.
-
-    ![furigana mode](docs/images/furigana.png)
-
-*   **ocr quick switch (windows):** press a hotkey (default `ctrl+alt+o`) to switch between two ocr providers, e.g. local meikiocr for normal reading and google lens for hard text. a small notice shows which one is active. set it up in settings → general.
-
-    ![ocr switch notice](docs/images/ocr-switch.png) ![ocr quick switch settings](docs/images/settings-quick-switch.png)
-
-*   **scan area: screen under mouse:** only scans the screen your mouse is on, so multi-monitor setups send much smaller images (faster with google lens). each screen keeps its last result, so moving back to a screen works instantly.
-
-    ![scan area menu](docs/images/scan-area.png)
-
-*   **no console window:** on windows the console is hidden by default and can be shown from the tray menu.
 
 ## philosophy & limitations
 
@@ -50,7 +66,7 @@ there are a few different ways to install and run meikipop. note that when meiki
 ### easiest: prepackaged binaries
 
 just download, unpack and start the executable binary. no python installation required:
-* https://github.com/rtr46/meikipop/releases/latest
+* https://github.com/KatoAb/meikipop/releases/latest
 
 ### recommended: install via pypi
 

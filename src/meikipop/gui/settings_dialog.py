@@ -245,6 +245,12 @@ class SettingsDialog(QDialog):
         vocab_layout = QFormLayout()
         self.form_layouts.append(vocab_layout)
 
+        self.max_entries_spin = QSpinBox()
+        self.max_entries_spin.setRange(1, 50)
+        self.max_entries_spin.setValue(config.max_dict_entries)
+        self.max_entries_spin.setToolTip("How many dictionary words the popup shows at most. 1 = only the closest match.")
+        vocab_layout.addRow("Max Words in Popup:", self.max_entries_spin)
+
         self.show_glosses_check = QCheckBox()
         self.show_glosses_check.setChecked(config.show_all_glosses)
         vocab_layout.addRow("Show All Glosses:", self.show_glosses_check)
@@ -504,6 +510,9 @@ class SettingsDialog(QDialog):
         config.compact_mode = self.compact_check.isChecked()
         config.furigana_mode = self.furigana_mode_check.isChecked()
         config.furigana_show_box = self.furigana_box_check.isChecked()
+        if config.max_dict_entries != self.max_entries_spin.value():
+            config.max_dict_entries = self.max_entries_spin.value()
+            self.lookup.clear_cache()
         config.show_all_glosses = self.show_glosses_check.isChecked()
         config.show_deconjugation = self.show_deconj_check.isChecked()
         config.show_pos = self.show_pos_check.isChecked()

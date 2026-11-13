@@ -7,7 +7,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-from meikipop.config.config import config, MAX_DICT_ENTRIES, DICT_PATH
+from meikipop.config.config import config, DICT_PATH
 from meikipop.dictionary.customdict import Dictionary, WRITTEN_FORM_INDEX, READING_INDEX, FREQUENCY_INDEX, ENTRY_ID_INDEX, DEFAULT_FREQ
 from meikipop.dictionary.deconjugator import Deconjugator, Form
 
@@ -99,8 +99,14 @@ class Lookup(threading.Thread):
 
         results = self._do_lookup(text)
 
+        # The kanji entry counts towards max_dict_entries: it takes the last slot,
+        # and is left out when the limit is 1 (only the closest word).
+        max_entries = max(1, int(config.max_dict_entries))
+        if config.show_kanji and max_entries > 1 and len(results) >= max_entries:
+            results = results[:max_entries - 1]
+
         # Append kanji entry for the first character if applicable
-        if config.show_kanji and KANJI_REGEX.match(text[0]):
+        if config.show_kanji and max_entries > 1 and KANJI_REGEX.match(text[0]):
             kd = self.dictionary.kanji_entries.get(text[0])
             if kd:
                 results.append(KanjiEntry(
@@ -258,7 +264,8 @@ class Lookup(threading.Thread):
         )
 
         results = []
-        for d in sorted_entries[:MAX_DICT_ENTRIES]:
+        max_entries = max(1, int(config.max_dict_entries))
+        for d in sorted_entries[:max_entries]:
             results.append(DictionaryEntry(
                 id=d['id'],
                 written_form=d['written_form'],
