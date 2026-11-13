@@ -12,6 +12,7 @@ from meikipop.gui.input import InputLoop
 from meikipop.gui.popup import Popup
 from meikipop.ocr.ocr import OcrProcessor
 from meikipop.gui.ocr_toggle import qt_sequence_to_hotkey
+from meikipop.gui.mouse_hotkey import MOUSE_HOTKEY_OPTIONS
 
 THEMES = {
     "Nazeka": {
@@ -77,6 +78,25 @@ class SettingsDialog(QDialog):
         self.hotkey_combo.setCurrentText(config.hotkey)
         self._set_expanding(self.hotkey_combo)
         core_layout.addRow("Hotkey:", self.hotkey_combo)
+
+        self.mouse_hotkey_combo = QComboBox()
+        for key, label in MOUSE_HOTKEY_OPTIONS.items():
+            self.mouse_hotkey_combo.addItem(label, key)
+        idx = self.mouse_hotkey_combo.findData(config.mouse_hotkey)
+        self.mouse_hotkey_combo.setCurrentIndex(idx if idx >= 0 else 0)
+        self.mouse_hotkey_combo.setToolTip("Hold this mouse button to show the popup (works together with the keyboard hotkey).")
+        self._set_expanding(self.mouse_hotkey_combo)
+        core_layout.addRow("Mouse Hotkey:", self.mouse_hotkey_combo)
+
+        if IS_WINDOWS:
+            self.mouse_hotkey_block_label = QLabel("Block Button's Normal Action:")
+            self.mouse_hotkey_block_check = QCheckBox()
+            self.mouse_hotkey_block_check.setChecked(config.mouse_hotkey_block)
+            self.mouse_hotkey_block_check.setToolTip(
+                "Stops the mouse button from doing its usual thing (e.g. going back in the browser) while used as hotkey.")
+            core_layout.addRow(self.mouse_hotkey_block_label, self.mouse_hotkey_block_check)
+            self.mouse_hotkey_combo.currentIndexChanged.connect(self._update_mouse_hotkey_state)
+            self._update_mouse_hotkey_state()
 
         self.ocr_provider_combo = QComboBox()
         self.ocr_provider_combo.addItems(self.ocr_processor.available_providers.keys())
@@ -442,6 +462,11 @@ class SettingsDialog(QDialog):
         self.auto_scan_no_hotkey_check_label.setEnabled(is_checked)
         self.auto_scan_mouse_move_check_label.setEnabled(is_checked)
 
+    def _update_mouse_hotkey_state(self, *_):
+        enabled = self.mouse_hotkey_combo.currentData() != 'none'
+        self.mouse_hotkey_block_check.setEnabled(enabled)
+        self.mouse_hotkey_block_label.setEnabled(enabled)
+
     def _update_furigana_state(self, is_checked):
         """Grays out furigana sub-options if furigana mode is off."""
         self.furigana_box_check.setEnabled(is_checked)
@@ -494,6 +519,9 @@ class SettingsDialog(QDialog):
 
         # Update all other config values
         config.hotkey = self.hotkey_combo.currentText()
+        config.mouse_hotkey = self.mouse_hotkey_combo.currentData()
+        if IS_WINDOWS:
+            config.mouse_hotkey_block = self.mouse_hotkey_block_check.isChecked()
         config.glens_low_bandwidth = self.glens_compression_check.isChecked()
         config.max_lookup_length = self.max_lookup_spin.value()
         config.auto_scan_mode = self.auto_scan_check.isChecked()

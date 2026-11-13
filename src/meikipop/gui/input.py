@@ -7,6 +7,7 @@ import time
 from pynput import mouse
 
 from meikipop.config.config import config, IS_LINUX, IS_MACOS
+from meikipop.gui.mouse_hotkey import MouseHotkey
 
 if IS_LINUX:
     from Xlib import display as xlib_display
@@ -149,6 +150,7 @@ class InputLoop(threading.Thread):
         else: # IS_WINDOWS
             self.keyboard_controller = WindowsKeyboardController(self.hotkey_str)
 
+        self.mouse_hotkey = MouseHotkey()
         self.started_auto_mode = False
         self.hotkey_is_pressed = False
 
@@ -164,7 +166,7 @@ class InputLoop(threading.Thread):
             try:
                 current_mouse_pos = self.get_mouse_pos()
                 try:
-                    hotkey_is_pressed = self.keyboard_controller.is_hotkey_pressed()
+                    hotkey_is_pressed = self._hotkey_down()
                 except Exception:
                     hotkey_is_pressed = False
 
@@ -199,13 +201,22 @@ class InputLoop(threading.Thread):
         logger.debug("Input thread stopped.")
 
     def is_real_hotkey_down(self):
-        return self.keyboard_controller.is_hotkey_pressed()
+        return self._hotkey_down()
+
+    def _hotkey_down(self):
+        if self.mouse_hotkey.is_pressed():
+            return True
+        try:
+            return self.keyboard_controller.is_hotkey_pressed()
+        except Exception:
+            return False
 
     def is_virtual_hotkey_down(self):
-        return self.keyboard_controller.is_hotkey_pressed() or (
+        return self._hotkey_down() or (
                 config.auto_scan_mode and config.auto_scan_mode_lookups_without_hotkey)
 
     def reapply_settings(self):
+        self.mouse_hotkey.apply_settings()
         logger.debug(f"InputLoop: Re-applying settings. New hotkey: '{config.hotkey}'.")
         self.hotkey_str = config.hotkey.lower()
         if IS_LINUX:

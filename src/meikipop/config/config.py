@@ -9,7 +9,7 @@ from meikipop.utils.paths import paths
 logger = logging.getLogger(__name__)
 
 APP_NAME = "meikipop"
-APP_VERSION = "2.2.0"
+APP_VERSION = "2.3.0"
 MAX_DICT_ENTRIES = 10
 IS_LINUX = sys.platform.startswith('linux')
 IS_WINDOWS = sys.platform.startswith('win')
@@ -30,6 +30,8 @@ class Config:
     _SCHEMA = {
         'Settings': {
             'hotkey': 'shift',
+            'mouse_hotkey': 'none',
+            'mouse_hotkey_block': True,
             'scan_region': 'region',
             'max_lookup_length': 25,
             'glens_low_bandwidth': False,

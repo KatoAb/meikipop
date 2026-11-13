@@ -22,12 +22,15 @@ choose how many dictionary results the popup shows (1–50, you can type the num
 
 ![max words setting](docs/images/settings-popup-content.png)
 
+### mouse button as hotkey
+hold the middle mouse button or a side button (back/forward) to show the popup, instead of or together with the keyboard hotkey. on windows the button's normal action (like going back in the browser) is blocked while it's used as the hotkey. settings → general → mouse hotkey.
+
 ### ocr quick switch (windows)
 press a hotkey (default `ctrl+alt+o`) to switch between two ocr providers, e.g. local meikiocr for normal reading and google lens for hard text. a small notice shows which one is now active. settings → general → ocr quick switch.
 
 ![ocr switch notice](docs/images/ocr-switch.png)
 
-![general settings with ocr quick switch and furigana mode](docs/images/settings-general.png)
+![general settings with mouse hotkey, ocr quick switch and furigana mode](docs/images/settings-general.png)
 
 ### scan area: screen under mouse
 only scans the screen your mouse is on, so multi-monitor setups send much smaller images (faster with google lens). each screen keeps its last result, so moving back to a screen works instantly. tray menu → scan area → screen under mouse.
